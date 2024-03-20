@@ -18,8 +18,7 @@ ARG USER=tc
 ARG UID=10000
 ARG HOME_DIR=/home/tc
 
-RUN update-ca-trust \
-    && chmod og+r /etc/krb5.conf \
+RUN cmod og+r /etc/krb5.conf \
     # Setup the user for non-arbitrary UIDs with OpenShift
     # https://docs.openshift.com/container-platform/4.14/openshift_images/create-images.html#use-uid_create-images
     && useradd -d ${HOME_DIR} -u ${UID} -g 0 -m -s /bin/bash ${USER} \
