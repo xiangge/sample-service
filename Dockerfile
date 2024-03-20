@@ -18,10 +18,7 @@ ARG USER=tc
 ARG UID=10000
 ARG HOME_DIR=/home/tc
 
-RUN cmod og+r /etc/krb5.conf \
-    # Setup the user for non-arbitrary UIDs with OpenShift
-    # https://docs.openshift.com/container-platform/4.14/openshift_images/create-images.html#use-uid_create-images
-    && useradd -d ${HOME_DIR} -u ${UID} -g 0 -m -s /bin/bash ${USER} \
+RUN useradd -d ${HOME_DIR} -u ${UID} -g 0 -m -s /bin/bash ${USER} \
     && chmod -R g+rwx ${HOME_DIR} \
     # Make /etc/passwd writable for root group
     # so we can add dynamic user to the system in entrypoint script
@@ -55,7 +52,8 @@ RUN cmod og+r /etc/krb5.conf \
         yamllint \
         krb5-workstation \
         ansible \
-    && dnf clean all
+    && dnf clean all \
+    && chmod og+r /etc/krb5.conf
 
 ENV \
     REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt \
