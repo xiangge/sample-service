@@ -27,7 +27,7 @@ RUN useradd -d ${HOME_DIR} -u ${UID} -g 0 -m -s /bin/bash ${USER} \
         --setopt install_weak_deps=false \
         --nodocs \
         --disablerepo=* \
-        --enablerepo=fedora,updates,rcm-tools-fedora-rpms \
+        --enablerepo=fedora,updates \
         git-core \
         python3 \
         python3-pip \
