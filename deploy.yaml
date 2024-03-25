@@ -1,0 +1,38 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: sample-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sample-service
+  template:
+    metadata:
+      labels:
+        app: sample-service
+    spec:
+      containers:
+        - name: sample-service
+          image: cc-sample-service:latest
+          ports:
+            - name: http
+              containerPort: 8088
+              protocol: TCP
+          resources:
+            requests:
+              memory: "10Mi"
+              cpu: "10m"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: sample-service-svc
+spec:
+  ports:
+    - name: http-8088
+      port: 8088
+      protocol: TCP
+      targetPort: 8088
+  selector:
+    app: sample-service

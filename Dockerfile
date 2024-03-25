@@ -1,6 +1,4 @@
-# tc-box building dockerfile
-# See images.paas.redhat.com/exd-sp-rhel-wf/tc-box:latest
-FROM --platform=linux/amd64 registry.fedoraproject.org/fedora:39
+FROM registry.fedoraproject.org/fedora:39
 
 ARG GIT_URL=unknown
 ARG GIT_COMMIT=unknown
@@ -52,6 +50,7 @@ RUN useradd -d ${HOME_DIR} -u ${UID} -g 0 -m -s /bin/bash ${USER} \
         yamllint \
         krb5-workstation \
         ansible \
+        go \
     && dnf clean all \
     && chmod og+r /etc/krb5.conf
 
@@ -66,11 +65,17 @@ ENV \
     PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1
 
-COPY requirements.txt /tmp/requirements.txt
+COPY . .
 
-RUN pip3 install --no-cache-dir -r /tmp/requirements.txt \
-    && rm /tmp/requirements.txt
+RUN pip3 install --no-cache-dir -r ./requirements.txt
+
+RUN go mod download
+
+RUN go build -buildvcs=false -o ./main
+
+ENV PORT 8088
+EXPOSE 8088
 
 USER ${UID}
 
-ENTRYPOINT ["bash"]
+ENTRYPOINT ["./main"]
