@@ -96,7 +96,7 @@ spec:
           value: "data"
       workspaces:
         - name: data
-          workspace: release-workspace
+          workspace: sample-service-release-workspace
       # runAfter:
       #   - verify-enterprise-contract
     # - name: collect-pyxis-params

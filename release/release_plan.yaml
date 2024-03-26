@@ -1,11 +1,13 @@
 apiVersion: appstudio.redhat.com/v1alpha1
 kind: ReleasePlan
 metadata:
- labels:
-   release.appstudio.openshift.io/auto-release: 'true'
- name: cc-sample-service
- namespace: chcao-tenant
+  labels:
+    release.appstudio.openshift.io/author: chcao
+    release.appstudio.openshift.io/auto-release: 'true'
+    release.appstudio.openshift.io/standing-attribution: 'true'
+  name: cc-sample-service
+  namespace: chcao-tenant
 spec:
- application: sample-service
- target: chcao-tenant
+  application: sample-service
+  target: chcao-tenant
  
