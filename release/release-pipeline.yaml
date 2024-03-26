@@ -51,7 +51,7 @@ spec:
       description: The revision in the taskGitUrl repo to be used
       default: main
   workspaces:
-    - name: sample-service-release-workspace
+    - name: release-workspace
   tasks:
     # - name: verify-enterprise-contract
     #   taskRef:
@@ -96,7 +96,7 @@ spec:
           value: "data"
       workspaces:
         - name: data
-          workspace: sample-service-release-workspace
+          workspace: release-workspace
       # runAfter:
       #   - verify-enterprise-contract
     # - name: collect-pyxis-params
@@ -165,7 +165,7 @@ spec:
     #     resolver: git
     #   workspaces:
     #     - name: data
-    #       workspace: sample-service-release-workspace
+    #       workspace: release-workspace
   finally:
     - name: cleanup
       taskRef:
@@ -188,4 +188,4 @@ spec:
           value: $(context.pipelineRun.uid)
       workspaces:
         - name: data
-          workspace: sample-service-release-workspace
+          workspace: release-workspace
