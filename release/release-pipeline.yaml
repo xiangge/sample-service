@@ -1,0 +1,191 @@
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: sample-service-push-to-image-paas
+  labels:
+    app.kubernetes.io/version: "4.1.0"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.12.1"
+    tekton.dev/tags: release
+spec:
+  description: >-
+    Tekton pipeline to release sample-service snapshot to images.paas.redhat.com.
+  params:
+    - name: release
+      type: string
+      description:
+        The namespaced name (namespace/name) of the Release custom resource initiating this pipeline execution
+    - name: releasePlan
+      type: string
+      description: The namespaced name (namespace/name) of the releasePlan
+    - name: releasePlanAdmission
+      type: string
+      description: The namespaced name (namespace/name) of the releasePlanAdmission
+    - name: releaseServiceConfig
+      type: string
+      description: The namespaced name (namespace/name) of the releaseServiceConfig
+    - name: snapshot
+      type: string
+      description: The namespaced name (namespace/name) of the snapshot
+    - name: enterpriseContractPolicy
+      type: string
+      description: JSON representation of the EnterpriseContractPolicy
+    - name: enterpriseContractPublicKey
+      type: string
+      description: Public key to use for validation by the enterprise contract
+      default: k8s://openshift-pipelines/public-key
+    - name: postCleanUp
+      type: string
+      description: Cleans up workspace after finishing executing the pipeline
+      default: "true"
+    - name: verify_ec_task_bundle
+      type: string
+      description: The location of the bundle containing the verify-enterprise-contract task
+    - name: taskGitUrl
+      type: string
+      description: The url to the git repo where the release-service-catalog tasks to be used are stored
+      default: https://github.com/xiangge/sample-service.git
+    - name: taskGitRevision
+      type: string
+      description: The revision in the taskGitUrl repo to be used
+      default: main
+  workspaces:
+    - name: sample-service-release-workspace
+  tasks:
+    # - name: verify-enterprise-contract
+    #   taskRef:
+    #     resolver: "bundles"
+    #     params:
+    #       - name: bundle
+    #         value: $(params.verify_ec_task_bundle)
+    #       - name: kind
+    #         value: task
+    #       - name: name
+    #         value: verify-enterprise-contract
+    #   params:
+    #     - name: IMAGES
+    #       value: "$(workspaces.data.path)/$(tasks.collect-data.results.snapshotSpec)"
+    #     - name: SSL_CERT_DIR
+    #       value: /var/run/secrets/kubernetes.io/serviceaccount
+    #     - name: POLICY_CONFIGURATION
+    #       value: $(params.enterpriseContractPolicy)
+    #     - name: STRICT
+    #       value: "1"
+    #     - name: IGNORE_REKOR
+    #       value: "true"
+    #     - name: PUBLIC_KEY
+    #       value: $(params.enterpriseContractPublicKey)
+    #   workspaces:
+    #     - name: data
+    #       workspace: cc-shared-workspace
+    - name: push-snapshot
+      taskRef:
+        resolver: "git"
+        params:
+          - name: url
+            value: $(params.taskGitUrl)
+          - name: revision
+            value: $(params.taskGitRevision)
+          - name: pathInRepo
+            value: release/tasks/publish-snapshot.yaml
+      params:
+        - name: snapshotPath
+          value: "data"
+        - name: dataPath
+          value: "data"
+      workspaces:
+        - name: data
+          workspace: release-workspace
+      # runAfter:
+      #   - verify-enterprise-contract
+    # - name: collect-pyxis-params
+    #   taskRef:
+    #     resolver: "git"
+    #     params:
+    #       - name: url
+    #         value: $(params.taskGitUrl)
+    #       - name: revision
+    #         value: $(params.taskGitRevision)
+    #       - name: pathInRepo
+    #         value: tasks/collect-pyxis-params/collect-pyxis-params.yaml
+    #   params:
+    #     - name: dataPath
+    #       value: "$(tasks.collect-data.results.data)"
+    #   workspaces:
+    #     - name: data
+    #       workspace: release-workspace
+    #   runAfter:
+    #     - collect-data
+    # - name: create-pyxis-image
+    #   taskRef:
+    #     resolver: "git"
+    #     params:
+    #       - name: url
+    #         value: $(params.taskGitUrl)
+    #       - name: revision
+    #         value: $(params.taskGitRevision)
+    #       - name: pathInRepo
+    #         value: tasks/create-pyxis-image/create-pyxis-image.yaml
+    #   params:
+    #     - name: server
+    #       value: $(tasks.collect-pyxis-params.results.server)
+    #     - name: pyxisSecret
+    #       value: $(tasks.collect-pyxis-params.results.secret)
+    #     - name: snapshotPath
+    #       value: "$(tasks.collect-data.results.snapshotSpec)"
+    #     - name: dataPath
+    #       value: "$(tasks.collect-data.results.data)"
+    #   workspaces:
+    #     - name: data
+    #       workspace: release-workspace
+    #   runAfter:
+    #     - push-snapshot
+    # - name: run-file-updates
+    #   params:
+    #     - name: fileUpdatesPath
+    #       value: $(tasks.collect-data.results.data)
+    #     - name: jsonKey
+    #       value: ".fileUpdates"
+    #     - name: snapshotPath
+    #       value: "$(tasks.collect-data.results.snapshotSpec)"
+    #     - name: pipelineRunUid
+    #       value: $(context.pipelineRun.uid)
+    #   runAfter:
+    #     - push-snapshot
+    #   taskRef:
+    #     kind: Task
+    #     params:
+    #       - name: url
+    #         value: $(params.taskGitUrl)
+    #       - name: revision
+    #         value: $(params.taskGitRevision)
+    #       - name: pathInRepo
+    #         value: tasks/run-file-updates/run-file-updates.yaml
+    #     resolver: git
+    #   workspaces:
+    #     - name: data
+    #       workspace: sample-service-release-workspace
+  finally:
+    - name: cleanup
+      taskRef:
+        resolver: "git"
+        params:
+          - name: url
+            value: $(params.taskGitUrl)
+          - name: revision
+            value: $(params.taskGitRevision)
+          - name: pathInRepo
+            value: release/tasks/cleanup-workspace.yaml
+      when:
+        - input: $(params.postCleanUp)
+          operator: in
+          values: ["true"]
+      params:
+        - name: subdirectory
+          value: "$(context.pipelineRun.uid)"
+        - name: pipelineRunUid
+          value: $(context.pipelineRun.uid)
+      workspaces:
+        - name: data
+          workspace: sample-service-release-workspace

@@ -1,0 +1,18 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: push-sample-service-image
+spec:
+  params:
+    - name: snapshotPath
+    - name: dataPath
+  steps:
+    - name: push-image
+      image: images.paas.redhat.com/exd-sp-rhel-wf/tc-box
+      script: |
+        set -eux
+
+        echo "simulate pushing image!!!"
+      workingDir: $(workspaces.data.path)
+  workspaces:
+    - name: data

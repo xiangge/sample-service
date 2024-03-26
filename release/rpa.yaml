@@ -1,0 +1,26 @@
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: ReleasePlanAdmission
+metadata:
+  name: cc-sample-service
+  namespace: chcao-tenant
+  labels:
+    release.appstudio.openshift.io/auto-release: "true"
+spec:
+  applications:
+    - sample-service
+  environment: cc-sample-service
+  origin: chcao-tenant
+  pipeline:
+    pipelineRef:
+      resolver: git
+      params:
+        - name: url
+          value: "https://github.com/xiangge/sample-service.git"
+        - name: revision
+          value: main
+        - name: pathInRepo
+          value: "release/release-pipeline.yaml"
+    timeouts:
+      pipeline: "1h0m0s"
+    serviceAccountName: appstudio-pipeline
+  policy: cc-sample-service-policy
