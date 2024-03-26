@@ -8,7 +8,7 @@ spec:
     - name: pipelineRunUid
   steps:
     - name: cleanup
-      image: images.paas.redhat.com/exd-sp-rhel-wf/tc-box
+      image: quay.io/redhat-appstudio/release-service-utils
       script: |
         set -eux
 

@@ -8,7 +8,7 @@ spec:
     - name: dataPath
   steps:
     - name: push-image
-      image: images.paas.redhat.com/exd-sp-rhel-wf/tc-box
+      image: quay.io/redhat-appstudio/release-service-utils
       script: |
         set -eux
 
